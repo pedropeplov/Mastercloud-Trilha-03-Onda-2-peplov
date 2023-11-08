@@ -1,0 +1,3045 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "novosynapse"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"SAsamasterclouddev01_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SAsamasterclouddev01'"
+		},
+		"mastercloud-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'mastercloud-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:mastercloud.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"masterclouddev-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'masterclouddev-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:masterclouddev.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"novosynapse-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'novosynapse-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:novosynapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"mastercloud-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://samasterclouddev01.dfs.core.windows.net"
+		},
+		"masterclouddev-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://samasterclouddev01.dfs.core.windows.net"
+		},
+		"novosynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://novostoragepeplov.dfs.core.windows.net"
+		},
+		"sample-diabetes_sasUri": {
+			"type": "secureString",
+			"metadata": "Secure string for 'sasUri' of 'sample-diabetes'"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/novoapachepeplo')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CopiaStorageToParquet')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_dw7",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "airbnb/input/listings.csv"
+							},
+							{
+								"name": "Destination",
+								"value": "azuresynapse//listing.parquet"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings",
+									"skipLineCount": 0
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"enableSkipIncompatibleRow": false,
+							"validateDataConsistency": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceDataset_dw7",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DestinationDataset_dw7",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-11-07T18:06:40Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/SourceDataset_dw7')]",
+				"[concat(variables('workspaceId'), '/datasets/DestinationDataset_dw7')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CopyPipeline_09r')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_09r",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "airbnb/input/listings.csv"
+							},
+							{
+								"name": "Destination",
+								"value": "azuresynapse//"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings",
+									"skipLineCount": 0
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"validateDataConsistency": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceDataset_09r",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DestinationDataset_09r",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2023-11-07T15:19:15Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/SourceDataset_09r')]",
+				"[concat(variables('workspaceId'), '/datasets/DestinationDataset_09r')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_09r')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SAsamasterclouddev01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "azuresynapse"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/SAsamasterclouddev01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DestinationDataset_dw7')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "listing.parquet",
+						"container": "azuresynapse"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SourceDataset_09r')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SAsamasterclouddev01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "listings.csv",
+						"folderPath": "input",
+						"container": "airbnb"
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "host_id",
+						"type": "String"
+					},
+					{
+						"name": "host_name",
+						"type": "String"
+					},
+					{
+						"name": "neighbourhood_group",
+						"type": "String"
+					},
+					{
+						"name": "neighbourhood",
+						"type": "String"
+					},
+					{
+						"name": "latitude",
+						"type": "String"
+					},
+					{
+						"name": "longitude",
+						"type": "String"
+					},
+					{
+						"name": "room_type",
+						"type": "String"
+					},
+					{
+						"name": "price",
+						"type": "String"
+					},
+					{
+						"name": "minimum_nights",
+						"type": "String"
+					},
+					{
+						"name": "number_of_reviews",
+						"type": "String"
+					},
+					{
+						"name": "last_review",
+						"type": "String"
+					},
+					{
+						"name": "reviews_per_month",
+						"type": "String"
+					},
+					{
+						"name": "calculated_host_listings_count",
+						"type": "String"
+					},
+					{
+						"name": "availability_365",
+						"type": "String"
+					},
+					{
+						"name": "number_of_reviews_ltm",
+						"type": "String"
+					},
+					{
+						"name": "license",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/SAsamasterclouddev01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SourceDataset_dw7')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "listings.csv",
+						"folderPath": "input",
+						"container": "airbnb"
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "host_id",
+						"type": "String"
+					},
+					{
+						"name": "host_name",
+						"type": "String"
+					},
+					{
+						"name": "neighbourhood_group",
+						"type": "String"
+					},
+					{
+						"name": "neighbourhood",
+						"type": "String"
+					},
+					{
+						"name": "latitude",
+						"type": "String"
+					},
+					{
+						"name": "longitude",
+						"type": "String"
+					},
+					{
+						"name": "room_type",
+						"type": "String"
+					},
+					{
+						"name": "price",
+						"type": "String"
+					},
+					{
+						"name": "minimum_nights",
+						"type": "String"
+					},
+					{
+						"name": "number_of_reviews",
+						"type": "String"
+					},
+					{
+						"name": "last_review",
+						"type": "String"
+					},
+					{
+						"name": "reviews_per_month",
+						"type": "String"
+					},
+					{
+						"name": "calculated_host_listings_count",
+						"type": "String"
+					},
+					{
+						"name": "availability_365",
+						"type": "String"
+					},
+					{
+						"name": "number_of_reviews_ltm",
+						"type": "String"
+					},
+					{
+						"name": "license",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SAsamasterclouddev01')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('SAsamasterclouddev01_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/mastercloud-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('mastercloud-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/mastercloud-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('mastercloud-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/masterclouddev-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('masterclouddev-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/masterclouddev-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('masterclouddev-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/novosynapse-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('novosynapse-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/novosynapse-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('novosynapse-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sample-diabetes')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"sasUri": "[parameters('sample-diabetes_sasUri')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/01 Create Table From Parquet')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Prática 01"
+				},
+				"content": {
+					"query": "IF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'azuresynapse_samasterclouddev01_dfs_core_windows_net') \n\tCREATE EXTERNAL DATA SOURCE [azuresynapse_samasterclouddev01_dfs_core_windows_net] \n\tWITH (\n\t\tLOCATION = 'abfss://azuresynapse@samasterclouddev01.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE dbo.listings (\n\t[id] nvarchar(4000),\n\t[name] nvarchar(4000),\n\t[host_id] nvarchar(4000),\n\t[host_name] nvarchar(4000),\n\t[neighbourhood_group] nvarchar(4000),\n\t[neighbourhood] nvarchar(4000),\n\t[latitude] nvarchar(4000),\n\t[longitude] nvarchar(4000),\n\t[room_type] nvarchar(4000),\n\t[price] nvarchar(4000),\n\t[minimum_nights] nvarchar(4000),\n\t[number_of_reviews] nvarchar(4000),\n\t[last_review] nvarchar(4000),\n\t[reviews_per_month] nvarchar(4000),\n\t[calculated_host_listings_count] nvarchar(4000),\n\t[availability_365] nvarchar(4000),\n\t[number_of_reviews_ltm] nvarchar(4000),\n\t[license] nvarchar(4000)\n\t)\n\tWITH (\n\tLOCATION = 'listing.parquet',\n\tDATA_SOURCE = [azuresynapse_samasterclouddev01_dfs_core_windows_net],\n\tFILE_FORMAT = [SynapseParquetFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM dbo.listings\nGO",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "airbnb",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/02 Bulk load')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Prática 01"
+				},
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://samasterclouddev01.dfs.core.windows.net/azuresynapse/listing.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/01 Intro Spark')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Prática 01"
+				},
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "ApacheSpark",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "c92929b6-57f3-4a49-8308-8a62daa15bf6"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/2dc921a3-dfe2-4fdf-aa1a-d089e2c5cc4e/resourceGroups/mastercloud-trilha-03/providers/Microsoft.Synapse/workspaces/masterclouddev/bigDataPools/ApacheSpark",
+						"name": "ApacheSpark",
+						"type": "Spark",
+						"endpoint": "https://masterclouddev.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ApacheSpark",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.3",
+						"nodeCount": 3,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"from pyspark.sql import functions as F"
+						],
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df = spark.read.load(path='abfss://azuresynapse@samasterclouddev01.dfs.core.windows.net/listing.parquet', format='parquet')"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df"
+						],
+						"outputs": [],
+						"execution_count": 13
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df.count()"
+						],
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"display(\n",
+							"    df\n",
+							"    .filter(F.col('neighbourhood')=='Centrum-West')\n",
+							"    .count()\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"df_removido = (df\n",
+							"    .drop(F.col('neighbourhood_group'))\n",
+							"    .filter(\n",
+							"        F.col('neighbourhood')=='Centrum-West'\n",
+							"        )    \n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 23
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df_removido.write.parquet(\n",
+							"    path='abfss://azuresynapse@samasterclouddev01.dfs.core.windows.net/silver/listings'\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 25
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df_removido.explain()"
+						],
+						"outputs": [],
+						"execution_count": 24
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"display(df.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"spark.catalog.listTables()"
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							}
+						},
+						"source": [
+							"%%sql\n",
+							"SELECT * FROM dbo.listings"
+						],
+						"outputs": [],
+						"execution_count": 3
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/01 Read Datalake with Spark')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Prática 02"
+				},
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "ApacheSpark",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "4d1adaf1-57ab-4845-8723-52ae0b6f7dfa"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/2dc921a3-dfe2-4fdf-aa1a-d089e2c5cc4e/resourceGroups/mastercloud-trilha-03/providers/Microsoft.Synapse/workspaces/masterclouddev/bigDataPools/ApacheSpark",
+						"name": "ApacheSpark",
+						"type": "Spark",
+						"endpoint": "https://masterclouddev.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ApacheSpark",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.3",
+						"nodeCount": 3,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Importando os módulos necessários para o Apache Spark"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"from pyspark.sql import SparkSession"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Configurando os diretórios para serem lidos pelo Apache Spark"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"blob_account_name = \"samasterclouddev01\"\n",
+							"blob_container_name = \"airbnb\""
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"sc = SparkSession.builder.getOrCreate()"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"token_library = sc._jvm.com.microsoft.azure.synapse.tokenlibrary.TokenLibrary\n",
+							"blob_sas_token = token_library.getConnectionString(\"SAsamasterclouddev01\")\n",
+							"\n",
+							"spark.conf.set(\n",
+							"    'fs.azure.sas.%s.%s.blob.core.windows.net' % (blob_container_name, blob_account_name),\n",
+							"    blob_sas_token)\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Iniciamos o processo de leitura e transformamos o nosso CSV em DataFrame"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df = spark.read.load(\n",
+							"    'wasbs://airbnb@samasterclouddev01.blob.core.windows.net/input/listings.csv', \n",
+							"    format='csv',\n",
+							"    header=True\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"display(df)"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Podemos então salvar o nosso dado limpo e processado para uma camada de maior qualidade"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"\n",
+							"df.write.mode(\"overwrite\").saveAsTable(\"default.YourTableName\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/02 Diabetes dataset')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Prática 02"
+				},
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "e55ed94a-2a59-4d80-8c20-f83167b5f713"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "python"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"%%pyspark\n",
+							"blob_account_name = \"azureopendatastorage\"\n",
+							"blob_container_name = \"mlsamples\"\n",
+							"blob_relative_path = \"diabetes\"\n",
+							"blob_sas_token = r\"\"\n",
+							"# Allow SPARK to read from Blob remotely\n",
+							"wasbs_path = 'wasbs://%s@%s.blob.core.windows.net/%s' % (blob_container_name, blob_account_name, blob_relative_path)\n",
+							"\n",
+							"spark.conf.set(\n",
+							"    'fs.azure.sas.%s.%s.blob.core.windows.net' % (blob_container_name, blob_account_name),\n",
+							"    blob_sas_token)\n",
+							"df = spark.read.parquet(wasbs_path)\n",
+							"display(df.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/02 Using Azure Open Datasets in Synapse')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Prática 01"
+				},
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "ApacheSpark",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "a3519163-d2e4-46a4-9b5c-52673b469643"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1",
+						"state": {
+							"50b52121-74c2-4b97-933b-557c2cee5a3d": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": "count",
+												"1": "923257",
+												"2": "923257",
+												"3": "923257",
+												"4": "923257",
+												"5": "923257",
+												"6": "923257",
+												"7": "923257",
+												"8": "923257",
+												"9": "923257",
+												"10": "923257",
+												"11": "923257",
+												"12": "923257",
+												"13": "923257",
+												"14": "17606",
+												"15": "17606",
+												"16": "17606",
+												"17": "0",
+												"18": "923257",
+												"19": "923257",
+												"20": "923257"
+											},
+											{
+												"0": "mean",
+												"1": "null",
+												"2": "1.833860994284365",
+												"3": "1.357852688904606",
+												"4": "3.2325295231988496",
+												"5": "1.0264538909534444",
+												"6": "16.112515713388373",
+												"7": "1.0154323227443713",
+												"8": "2018.0",
+												"9": "5.1364462982679795",
+												"10": "5.1364462982679795",
+												"11": "13.844344532454127",
+												"12": "4.137266221647927",
+												"13": "13.697660564718166",
+												"14": "null",
+												"15": "null",
+												"16": "null",
+												"17": "null",
+												"18": "18.58190665884031",
+												"19": "19.26542663635369",
+												"20": "4213.8777393510145"
+											},
+											{
+												"0": "stddev",
+												"1": "null",
+												"2": "0.372205570280615",
+												"3": "1.0397434350543042",
+												"4": "3.7213549381277544",
+												"5": "2.074783792187912",
+												"6": "13.492789079321522",
+												"7": "0.12326468519506639",
+												"8": "0.0",
+												"9": "0.3432620479749415",
+												"10": "0.3432620479749415",
+												"11": "9.330046641186325",
+												"12": "1.982096526293111",
+												"13": "5.987036976846423",
+												"14": "null",
+												"15": "null",
+												"16": "null",
+												"17": "null",
+												"18": "3.6046653323635867",
+												"19": "8.120658513433671",
+												"20": "4389.942208506073"
+											},
+											{
+												"0": "min",
+												"1": "US",
+												"2": "1",
+												"3": "0",
+												"4": "0.0",
+												"5": "-2.0",
+												"6": "-235.0",
+												"7": "1",
+												"8": "2018",
+												"9": "5",
+												"10": "5",
+												"11": "1",
+												"12": "1",
+												"13": "0",
+												"14": "United States",
+												"15": "Memorial Day",
+												"16": "Memorial Day",
+												"17": "null",
+												"18": "11.900000000000006",
+												"19": "1.0",
+												"20": "0.0"
+											},
+											{
+												"0": "max",
+												"1": "US",
+												"2": "2",
+												"3": "9",
+												"4": "621.1",
+												"5": "450.0",
+												"6": "2704.8",
+												"7": "2",
+												"8": "2018",
+												"9": "6",
+												"10": "6",
+												"11": "31",
+												"12": "7",
+												"13": "23",
+												"14": "United States",
+												"15": "Memorial Day",
+												"16": "Memorial Day",
+												"17": "null",
+												"18": "26.072330097087377",
+												"19": "24.0",
+												"20": "9999.0"
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "summary",
+												"type": "string"
+											},
+											{
+												"key": "1",
+												"name": "country_code",
+												"type": "string"
+											},
+											{
+												"key": "2",
+												"name": "vendorID",
+												"type": "string"
+											},
+											{
+												"key": "3",
+												"name": "passengerCount",
+												"type": "string"
+											},
+											{
+												"key": "4",
+												"name": "tripDistance",
+												"type": "string"
+											},
+											{
+												"key": "5",
+												"name": "tipAmount",
+												"type": "string"
+											},
+											{
+												"key": "6",
+												"name": "totalAmount",
+												"type": "string"
+											},
+											{
+												"key": "7",
+												"name": "tripType",
+												"type": "string"
+											},
+											{
+												"key": "8",
+												"name": "puYear",
+												"type": "string"
+											},
+											{
+												"key": "9",
+												"name": "puMonth",
+												"type": "string"
+											},
+											{
+												"key": "10",
+												"name": "month_num",
+												"type": "string"
+											},
+											{
+												"key": "11",
+												"name": "day_of_month",
+												"type": "string"
+											},
+											{
+												"key": "12",
+												"name": "day_of_week",
+												"type": "string"
+											},
+											{
+												"key": "13",
+												"name": "hour_of_day",
+												"type": "string"
+											},
+											{
+												"key": "14",
+												"name": "countryOrRegion",
+												"type": "string"
+											},
+											{
+												"key": "15",
+												"name": "holidayName",
+												"type": "string"
+											},
+											{
+												"key": "16",
+												"name": "normalizeHolidayName",
+												"type": "string"
+											},
+											{
+												"key": "17",
+												"name": "avg_snowDepth",
+												"type": "string"
+											},
+											{
+												"key": "18",
+												"name": "avg_temperature",
+												"type": "string"
+											},
+											{
+												"key": "19",
+												"name": "max_precipTime",
+												"type": "string"
+											},
+											{
+												"key": "20",
+												"name": "max_precipDepth",
+												"type": "string"
+											}
+										]
+									},
+									"isSummary": false,
+									"language": "scala"
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "count",
+											"categoryFieldKeys": [
+												"0"
+											],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							}
+						}
+					},
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/2dc921a3-dfe2-4fdf-aa1a-d089e2c5cc4e/resourceGroups/mastercloud-trilha-03/providers/Microsoft.Synapse/workspaces/masterclouddev/bigDataPools/ApacheSpark",
+						"name": "ApacheSpark",
+						"type": "Spark",
+						"endpoint": "https://masterclouddev.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ApacheSpark",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net",
+							"authHeader": null
+						},
+						"sparkVersion": "3.3",
+						"nodeCount": 3,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Using Azure Open Datasets in Synapse - Enrich NYC Green Taxi Data with Holiday and Weather\n",
+							"\n",
+							"Synapse has [Azure Open Datasets](https://azure.microsoft.com/en-us/services/open-datasets/) package pre-installed. This notebook provides examples of how to enrich NYC Green Taxi Data with Holiday and Weather with focusing on :\n",
+							"- read Azure Open Dataset\n",
+							"- manipulate the data to prepare for further analysis, including column projection, filtering, grouping and joins etc. \n",
+							"- create a Spark table to be used in other notebooks for modeling training"
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Data loading \n",
+							"Let's first load the [NYC green taxi trip records](https://azure.microsoft.com/en-us/services/open-datasets/catalog/nyc-taxi-limousine-commission-green-taxi-trip-records/). The Open Datasets package contains a class representing each data source (NycTlcGreen for example) to easily filter date parameters before downloading."
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from azureml.opendatasets import NycTlcGreen\n",
+							"\n",
+							"from datetime import datetime\n",
+							"from dateutil import parser\n",
+							"end_date = parser.parse('2018-06-06')\n",
+							"start_date = parser.parse('2018-05-01')\n",
+							"\n",
+							"nyc_tlc = NycTlcGreen(start_date=start_date, end_date=end_date)\n",
+							"nyc_tlc_df = nyc_tlc.to_spark_dataframe()"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Display 5 rows\n",
+							"\n",
+							"nyc_tlc_df.show(5, truncate = False)"
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Now that the initial data is loaded. Let's do some projection on the data to \n",
+							"- create new columns for the month number, day of month, day of week, and hour of day. These info is going to be used in the training model to factor in time-based seasonality.\n",
+							"- add a static feature for the country code to join holiday data. "
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Extract month, day of month, and day of week from pickup datetime and add a static column for the country code to join holiday data. \n",
+							"\n",
+							"import pyspark.sql.functions as f\n",
+							"\n",
+							"nyc_tlc_df_expand = nyc_tlc_df.withColumn('datetime',f.to_date('lpepPickupDatetime'))\\\n",
+							"                .withColumn('month_num',f.month(nyc_tlc_df.lpepPickupDatetime))\\\n",
+							"                .withColumn('day_of_month',f.dayofmonth(nyc_tlc_df.lpepPickupDatetime))\\\n",
+							"                .withColumn('day_of_week',f.dayofweek(nyc_tlc_df.lpepPickupDatetime))\\\n",
+							"                .withColumn('hour_of_day',f.hour(nyc_tlc_df.lpepPickupDatetime))\\\n",
+							"                .withColumn('country_code',f.lit('US'))"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Remove some of the columns that won't need for modeling or additional feature building.\n",
+							"\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Remove unused columns from nyc green taxi data\n",
+							"\n",
+							"columns_to_remove = [\"lpepDropoffDatetime\", \"puLocationId\", \"doLocationId\", \"pickupLongitude\", \n",
+							"                     \"pickupLatitude\", \"dropoffLongitude\",\"dropoffLatitude\" ,\"rateCodeID\", \n",
+							"                     \"storeAndFwdFlag\",\"paymentType\", \"fareAmount\", \"extra\", \"mtaTax\",\n",
+							"                     \"improvementSurcharge\", \"tollsAmount\", \"ehailFee\", \"tripType \"  \n",
+							"                    ]\n",
+							"\n",
+							"nyc_tlc_df_clean = nyc_tlc_df_expand.select([column for column in nyc_tlc_df_expand.columns if column not in columns_to_remove])"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Display 5 rows\n",
+							"nyc_tlc_df_clean.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Enrich with holiday data\n",
+							"Now that we have taxi data downloaded and roughly prepared, add in holiday data as additional features. Holiday-specific features will assist model accuracy, as major holidays are times where taxi demand increases dramatically and supply becomes limited. \n",
+							"\n",
+							"Let's load the [public holidays](https://azure.microsoft.com/en-us/services/open-datasets/catalog/public-holidays/) from Azure Open datasets.\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from azureml.opendatasets import PublicHolidays\n",
+							"\n",
+							"hol = PublicHolidays(start_date=start_date, end_date=end_date)\n",
+							"hol_df = hol.to_spark_dataframe()\n",
+							"\n",
+							"# Display data\n",
+							"hol_df.show(5, truncate = False)"
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Rename the countryRegionCode and date columns to match the respective field names from the taxi data, and also normalize the time so it can be used as a key. "
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"hol_df_clean = hol_df.withColumnRenamed('countryRegionCode','country_code')\\\n",
+							"            .withColumn('datetime',f.to_date('date'))\n",
+							"\n",
+							"hol_df_clean.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Next, join the holiday data with the taxi data by performing a left-join. This will preserve all records from taxi data, but add in holiday data where it exists for the corresponding datetime and country_code, which in this case is always \"US\". Preview the data to verify that they were merged correctly."
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# enrich taxi data with holiday data\n",
+							"nyc_taxi_holiday_df = nyc_tlc_df_clean.join(hol_df_clean, on = ['datetime', 'country_code'] , how = 'left')\n",
+							"\n",
+							"nyc_taxi_holiday_df.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Create a temp table and filter out non empty holiday rows\n",
+							"\n",
+							"nyc_taxi_holiday_df.createOrReplaceTempView(\"nyc_taxi_holiday_df\")\n",
+							"spark.sql(\"SELECT * from nyc_taxi_holiday_df WHERE holidayName is NOT NULL \").show(5, truncate = False)"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Enrich with weather data¶\n",
+							"\n",
+							"Now we append NOAA surface weather data to the taxi and holiday data. Use a similar approach to fetch the [NOAA weather history data](https://azure.microsoft.com/en-us/services/open-datasets/catalog/noaa-integrated-surface-data/) from Azure Open Datasets. "
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from azureml.opendatasets import NoaaIsdWeather\n",
+							"\n",
+							"isd = NoaaIsdWeather(start_date, end_date)\n",
+							"isd_df = isd.to_spark_dataframe()"
+						],
+						"outputs": [],
+						"execution_count": 10
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"isd_df.show(5, truncate = False)"
+						],
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Filter out weather info for new york city, remove the recording with null temperature \n",
+							"\n",
+							"weather_df = isd_df.filter(isd_df.latitude >= '40.53')\\\n",
+							"                        .filter(isd_df.latitude <= '40.88')\\\n",
+							"                        .filter(isd_df.longitude >= '-74.09')\\\n",
+							"                        .filter(isd_df.longitude <= '-73.72')\\\n",
+							"                        .filter(isd_df.temperature.isNotNull())\\\n",
+							"                        .withColumnRenamed('datetime','datetime_full')\n",
+							"                         "
+						],
+						"outputs": [],
+						"execution_count": 12
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Remove unused columns\n",
+							"\n",
+							"columns_to_remove_weather = [\"usaf\", \"wban\", \"longitude\", \"latitude\"]\n",
+							"weather_df_clean = weather_df.select([column for column in weather_df.columns if column not in columns_to_remove_weather])\\\n",
+							"                        .withColumn('datetime',f.to_date('datetime_full'))\n",
+							"\n",
+							"weather_df_clean.show(5, truncate = False)"
+						],
+						"outputs": [],
+						"execution_count": 13
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Next group the weather data so that you have daily aggregated weather values. \n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Enrich weather data with aggregation statistics\n",
+							"\n",
+							"aggregations = {\"snowDepth\": \"mean\", \"precipTime\": \"max\", \"temperature\": \"mean\", \"precipDepth\": \"max\"}\n",
+							"weather_df_grouped = weather_df_clean.groupby(\"datetime\").agg(aggregations)"
+						],
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"weather_df_grouped.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Rename columns\n",
+							"\n",
+							"weather_df_grouped = weather_df_grouped.withColumnRenamed('avg(snowDepth)','avg_snowDepth')\\\n",
+							"                                       .withColumnRenamed('avg(temperature)','avg_temperature')\\\n",
+							"                                       .withColumnRenamed('max(precipTime)','max_precipTime')\\\n",
+							"                                       .withColumnRenamed('max(precipDepth)','max_precipDepth')"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Merge the taxi and holiday data you prepared with the new weather data. This time you only need the datetime key, and again perform a left-join of the data. Run the describe() function on the new dataframe to see summary statistics for each field."
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# enrich taxi data with weather\n",
+							"nyc_taxi_holiday_weather_df = nyc_taxi_holiday_df.join(weather_df_grouped, on = 'datetime' , how = 'left')\n",
+							"nyc_taxi_holiday_weather_df.cache()"
+						],
+						"outputs": [],
+						"execution_count": 17
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"nyc_taxi_holiday_weather_df.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 18
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# Run the describe() function on the new dataframe to see summary statistics for each field.\n",
+							"\n",
+							"display(nyc_taxi_holiday_weather_df.describe())"
+						],
+						"outputs": [],
+						"execution_count": 19
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"The summary statistics shows that the totalAmount field has negative values, which don't make sense in the context.\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Remove invalid rows with less than 0 taxi fare or tip\n",
+							"final_df = nyc_taxi_holiday_weather_df.filter(nyc_taxi_holiday_weather_df.tipAmount > 0)\\\n",
+							"                                      .filter(nyc_taxi_holiday_weather_df.totalAmount > 0)"
+						],
+						"outputs": [],
+						"execution_count": 20
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Cleaning up the existing Database\n",
+							"\n",
+							"First we need to drop the tables since Spark requires that a database is empty before we can drop the Database.\n",
+							"\n",
+							"Then we recreate the database and set the default database context to it."
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"spark.sql(\"DROP TABLE IF EXISTS NYCTaxi.nyc_taxi_holiday_weather\"); "
+						],
+						"outputs": [],
+						"execution_count": 21
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"spark.sql(\"DROP DATABASE IF EXISTS NYCTaxi\"); \n",
+							"spark.sql(\"CREATE DATABASE NYCTaxi\"); \n",
+							"spark.sql(\"USE NYCTaxi\");"
+						],
+						"outputs": [],
+						"execution_count": 22
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Creating a new table\n",
+							"We create a nyc_taxi_holiday_weather table from the nyc_taxi_holiday_weather dataframe.\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from pyspark.sql import SparkSession\n",
+							"from pyspark.sql.types import *\n",
+							"\n",
+							"final_df.write.saveAsTable(\"nyc_taxi_holiday_weather\");\n",
+							"spark.sql(\"SELECT COUNT(*) FROM nyc_taxi_holiday_weather\").show();"
+						],
+						"outputs": [],
+						"execution_count": 23
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/03 Avancado NYC Green Taxi')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Prática 02"
+				},
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "ApacheSpark",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "cc0b4862-b533-4962-b7ce-ea57b26b5fc9"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/2dc921a3-dfe2-4fdf-aa1a-d089e2c5cc4e/resourceGroups/mastercloud-trilha-03/providers/Microsoft.Synapse/workspaces/masterclouddev/bigDataPools/ApacheSpark",
+						"name": "ApacheSpark",
+						"type": "Spark",
+						"endpoint": "https://masterclouddev.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ApacheSpark",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.3",
+						"nodeCount": 3,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"source": [
+							"# Using Azure Open Datasets in Synapse - Enrich NYC Green Taxi Data with Holiday and Weather\n",
+							"\n",
+							"Synapse has [Azure Open Datasets](https://azure.microsoft.com/en-us/services/open-datasets/) package pre-installed. This notebook provides examples of how to enrich NYC Green Taxi Data with Holiday and Weather with focusing on :\n",
+							"- read Azure Open Dataset\n",
+							"- manipulate the data to prepare for further analysis, including column projection, filtering, grouping and joins etc. \n",
+							"- create a Spark table to be used in other notebooks for modeling training"
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Data loading \n",
+							"Let's first load the [NYC green taxi trip records](https://azure.microsoft.com/en-us/services/open-datasets/catalog/nyc-taxi-limousine-commission-green-taxi-trip-records/). The Open Datasets package contains a class representing each data source (NycTlcGreen for example) to easily filter date parameters before downloading."
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from azureml.opendatasets import NycTlcGreen\n",
+							"\n",
+							"from datetime import datetime\n",
+							"from dateutil import parser\n",
+							"end_date = parser.parse('2018-06-06')\n",
+							"start_date = parser.parse('2018-05-01')\n",
+							"\n",
+							"nyc_tlc = NycTlcGreen(start_date=start_date, end_date=end_date)\n",
+							"nyc_tlc_df = nyc_tlc.to_spark_dataframe()"
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"display(nyc_tlc_df)"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"nyc_tlc_df.count()"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Now that the initial data is loaded. Let's do some projection on the data to \n",
+							"- create new columns for the month number, day of month, day of week, and hour of day. These info is going to be used in the training model to factor in time-based seasonality.\n",
+							"- add a static feature for the country code to join holiday data. "
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Extract month, day of month, and day of week from pickup datetime and add a static column for the country code to join holiday data. \n",
+							"\n",
+							"import pyspark.sql.functions as f\n",
+							"\n",
+							"nyc_tlc_df_expand = nyc_tlc_df.withColumn('datetime',f.to_date('lpepPickupDatetime'))\\\n",
+							"                .withColumn('month_num',f.month(nyc_tlc_df.lpepPickupDatetime))\\\n",
+							"                .withColumn('day_of_month',f.dayofmonth(nyc_tlc_df.lpepPickupDatetime))\\\n",
+							"                .withColumn('day_of_week',f.dayofweek(nyc_tlc_df.lpepPickupDatetime))\\\n",
+							"                .withColumn('hour_of_day',f.hour(nyc_tlc_df.lpepPickupDatetime))\\\n",
+							"                .withColumn('country_code',f.lit('US'))"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Remove some of the columns that won't need for modeling or additional feature building.\n",
+							"\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Remove unused columns from nyc green taxi data\n",
+							"\n",
+							"columns_to_remove = [\"lpepDropoffDatetime\", \"puLocationId\", \"doLocationId\", \"pickupLongitude\", \n",
+							"                     \"pickupLatitude\", \"dropoffLongitude\",\"dropoffLatitude\" ,\"rateCodeID\", \n",
+							"                     \"storeAndFwdFlag\",\"paymentType\", \"fareAmount\", \"extra\", \"mtaTax\",\n",
+							"                     \"improvementSurcharge\", \"tollsAmount\", \"ehailFee\", \"tripType \"  \n",
+							"                    ]\n",
+							"\n",
+							"nyc_tlc_df_clean = nyc_tlc_df_expand.select([column for column in nyc_tlc_df_expand.columns if column not in columns_to_remove])"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Display 5 rows\n",
+							"nyc_tlc_df_clean.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Enrich with holiday data\n",
+							"Now that we have taxi data downloaded and roughly prepared, add in holiday data as additional features. Holiday-specific features will assist model accuracy, as major holidays are times where taxi demand increases dramatically and supply becomes limited. \n",
+							"\n",
+							"Let's load the [public holidays](https://azure.microsoft.com/en-us/services/open-datasets/catalog/public-holidays/) from Azure Open datasets.\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from azureml.opendatasets import PublicHolidays\n",
+							"\n",
+							"hol = PublicHolidays(start_date=start_date, end_date=end_date)\n",
+							"hol_df = hol.to_spark_dataframe()\n",
+							"\n",
+							"# Display data\n",
+							"hol_df.show(5, truncate = False)"
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Rename the countryRegionCode and date columns to match the respective field names from the taxi data, and also normalize the time so it can be used as a key. "
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"hol_df_clean = hol_df.withColumnRenamed('countryRegionCode','country_code')\\\n",
+							"            .withColumn('datetime',f.to_date('date'))\n",
+							"\n",
+							"hol_df_clean.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Next, join the holiday data with the taxi data by performing a left-join. This will preserve all records from taxi data, but add in holiday data where it exists for the corresponding datetime and country_code, which in this case is always \"US\". Preview the data to verify that they were merged correctly."
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# enrich taxi data with holiday data\n",
+							"nyc_taxi_holiday_df = nyc_tlc_df_clean.join(hol_df_clean, on = ['datetime', 'country_code'] , how = 'left')\n",
+							"\n",
+							"nyc_taxi_holiday_df.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Create a temp table and filter out non empty holiday rows\n",
+							"\n",
+							"nyc_taxi_holiday_df.createOrReplaceTempView(\"nyc_taxi_holiday_df\")\n",
+							"spark.sql(\"SELECT * from nyc_taxi_holiday_df WHERE holidayName is NOT NULL \").show(5, truncate = False)"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Enrich with weather data¶\n",
+							"\n",
+							"Now we append NOAA surface weather data to the taxi and holiday data. Use a similar approach to fetch the [NOAA weather history data](https://azure.microsoft.com/en-us/services/open-datasets/catalog/noaa-integrated-surface-data/) from Azure Open Datasets. "
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from azureml.opendatasets import NoaaIsdWeather\n",
+							"\n",
+							"isd = NoaaIsdWeather(start_date, end_date)\n",
+							"isd_df = isd.to_spark_dataframe()"
+						],
+						"outputs": [],
+						"execution_count": 10
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"isd_df.show(5, truncate = False)"
+						],
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Filter out weather info for new york city, remove the recording with null temperature \n",
+							"\n",
+							"weather_df = isd_df.filter(isd_df.latitude >= '40.53')\\\n",
+							"                        .filter(isd_df.latitude <= '40.88')\\\n",
+							"                        .filter(isd_df.longitude >= '-74.09')\\\n",
+							"                        .filter(isd_df.longitude <= '-73.72')\\\n",
+							"                        .filter(isd_df.temperature.isNotNull())\\\n",
+							"                        .withColumnRenamed('datetime','datetime_full')\n",
+							"                         "
+						],
+						"outputs": [],
+						"execution_count": 12
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Remove unused columns\n",
+							"\n",
+							"columns_to_remove_weather = [\"usaf\", \"wban\", \"longitude\", \"latitude\"]\n",
+							"weather_df_clean = weather_df.select([column for column in weather_df.columns if column not in columns_to_remove_weather])\\\n",
+							"                        .withColumn('datetime',f.to_date('datetime_full'))\n",
+							"\n",
+							"weather_df_clean.show(5, truncate = False)"
+						],
+						"outputs": [],
+						"execution_count": 13
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Next group the weather data so that you have daily aggregated weather values. \n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Enrich weather data with aggregation statistics\n",
+							"\n",
+							"aggregations = {\"snowDepth\": \"mean\", \"precipTime\": \"max\", \"temperature\": \"mean\", \"precipDepth\": \"max\"}\n",
+							"weather_df_grouped = weather_df_clean.groupby(\"datetime\").agg(aggregations)"
+						],
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"weather_df_grouped.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Rename columns\n",
+							"\n",
+							"weather_df_grouped = weather_df_grouped.withColumnRenamed('avg(snowDepth)','avg_snowDepth')\\\n",
+							"                                       .withColumnRenamed('avg(temperature)','avg_temperature')\\\n",
+							"                                       .withColumnRenamed('max(precipTime)','max_precipTime')\\\n",
+							"                                       .withColumnRenamed('max(precipDepth)','max_precipDepth')"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"Merge the taxi and holiday data you prepared with the new weather data. This time you only need the datetime key, and again perform a left-join of the data. Run the describe() function on the new dataframe to see summary statistics for each field."
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# enrich taxi data with weather\n",
+							"nyc_taxi_holiday_weather_df = nyc_taxi_holiday_df.join(weather_df_grouped, on = 'datetime' , how = 'left')\n",
+							"nyc_taxi_holiday_weather_df.cache()"
+						],
+						"outputs": [],
+						"execution_count": 17
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"nyc_taxi_holiday_weather_df.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 18
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# Run the describe() function on the new dataframe to see summary statistics for each field.\n",
+							"\n",
+							"display(nyc_taxi_holiday_weather_df.describe())"
+						],
+						"outputs": [],
+						"execution_count": 19
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"The summary statistics shows that the totalAmount field has negative values, which don't make sense in the context.\n",
+							"\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# Remove invalid rows with less than 0 taxi fare or tip\n",
+							"final_df = nyc_taxi_holiday_weather_df.filter(nyc_taxi_holiday_weather_df.tipAmount > 0)\\\n",
+							"                                      .filter(nyc_taxi_holiday_weather_df.totalAmount > 0)"
+						],
+						"outputs": [],
+						"execution_count": 20
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Cleaning up the existing Database\n",
+							"\n",
+							"First we need to drop the tables since Spark requires that a database is empty before we can drop the Database.\n",
+							"\n",
+							"Then we recreate the database and set the default database context to it."
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"spark.sql(\"DROP TABLE IF EXISTS NYCTaxi.nyc_taxi_holiday_weather\"); "
+						],
+						"outputs": [],
+						"execution_count": 21
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"spark.sql(\"DROP DATABASE IF EXISTS NYCTaxi\"); \n",
+							"spark.sql(\"CREATE DATABASE NYCTaxi\"); \n",
+							"spark.sql(\"USE NYCTaxi\");"
+						],
+						"outputs": [],
+						"execution_count": 22
+					},
+					{
+						"cell_type": "markdown",
+						"source": [
+							"## Creating a new table\n",
+							"We create a nyc_taxi_holiday_weather table from the nyc_taxi_holiday_weather dataframe.\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from pyspark.sql import SparkSession\n",
+							"from pyspark.sql.types import *\n",
+							"\n",
+							"final_df.write.saveAsTable(\"nyc_taxi_holiday_weather\");\n",
+							"spark.sql(\"SELECT COUNT(*) FROM nyc_taxi_holiday_weather\").show();"
+						],
+						"outputs": [],
+						"execution_count": 23
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/03 Camadas NYC Green Taxi')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Prática 02"
+				},
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "novoapachepeplo",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "70077b2f-8caf-4618-aa1c-a700decc214a"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/14c72e24-7729-4d8d-8139-a66b282ef81b/resourceGroups/aula1/providers/Microsoft.Synapse/workspaces/novosynapse/bigDataPools/novoapachepeplo",
+						"name": "novoapachepeplo",
+						"type": "Spark",
+						"endpoint": "https://novosynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/novoapachepeplo",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.3",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"automaticScaleJobs": false
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"#### Para exemplificar o conceito de camadas na Medallion Architecture usando o PySpark e o dataset NycTlcGreen do AzureML OpenDatasets, você pode realizar transformações e análises progressivas que representem a transição entre as camadas Bronze, Prata e Ouro."
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {},
+						"source": [
+							"## Carregamento dos dados"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"from azureml.opendatasets import NycTlcGreen\n",
+							"\n",
+							"from datetime import datetime\n",
+							"from dateutil import parser\n",
+							"end_date = parser.parse('2018-06-06')\n",
+							"start_date = parser.parse('2018-05-01')\n",
+							"\n",
+							"nyc_tlc = NycTlcGreen(start_date=start_date, end_date=end_date)\n",
+							"nyc_tlc_df = nyc_tlc.to_spark_dataframe()"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"type(nyc_tlc_df)"
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"display(nyc_tlc_df)"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"display(nyc_tlc_df)"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"nyc_tlc_df.count()"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"## Camada Bronze"
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Na camada Bronze, você tem os dados brutos, não tratados e em seu formato original. O seu DataFrame nyc_tlc_df inicial está nesta camada."
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df_bronze = nyc_tlc_df"
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"print(f\"Dataframe inicial com {df_bronze.count()} registros.\")"
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Salvando o dado na camada Bronze"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df_bronze.write.parquet(\n",
+							"    path='abfss://azuresynapse@novostoragepeplov.dfs.core.windows.net/filesystempeplov',\n",
+							"    mode='overwrite'\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Camada Silver"
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Na camada Prata, os dados são limpos, transformados e enriquecidos. Você pode aplicar filtros, remover valores nulos e adicionar colunas derivadas."
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Lemos o novo dadodo nosso storage\n",
+							"df_bronze = spark.read.load(\n",
+							"    path='abfss://azuresynapse@samasterclouddev01.dfs.core.windows.net/nyc_taxi/bronze/',\n",
+							"    format='parquet'\n",
+							"\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 22
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"from pyspark.sql.functions import col\n",
+							"\n",
+							"# Limpeza e transformações básicas\n",
+							"df_silver = df_bronze.filter(col('passengerCount') > 0) \\\n",
+							"                            .dropna(subset=['tripDistance', 'fareAmount']) \\\n",
+							"                            .withColumnRenamed('tripDistance', 'trip_distance') \\\n",
+							"                            .withColumnRenamed('fareAmount', 'fare_amount')\n",
+							"\n",
+							"# Log dos dados transformados\n",
+							"print(f\"Dataframe transformado com {df_silver.count()} registros.\")"
+						],
+						"outputs": [],
+						"execution_count": 25
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Salvando os dados na camada Silver"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df_silver.explain(\"EXTENDED\")"
+						],
+						"outputs": [],
+						"execution_count": 39
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df_silver.write.parquet(\n",
+							"    path='abfss://azuresynapse@samasterclouddev01.dfs.core.windows.net/nyc_taxi/silver',\n",
+							"    mode='overwrite'\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 27
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Camada Ouro"
+						]
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"Finalmente, na camada Ouro, os dados estão prontos para análises e visualizações de alto nível. Você pode criar agregações, métricas de negócio, ou mesmo tabelas de dimensão/fato para uso em BI."
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Lemos o novo dado nosso storage\n",
+							"df_silver = spark.read.load(\n",
+							"    path='abfss://azuresynapse@samasterclouddev01.dfs.core.windows.net/nyc_taxi/silver/',\n",
+							"    format='parquet'\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 28
+					},
+					{
+						"cell_type": "code",
+						"metadata": {},
+						"source": [
+							"from pyspark.sql.functions import avg, sum\n",
+							"\n",
+							"# Agregações para análise de negócios\n",
+							"df_gold = df_silver.groupBy('paymentType') \\\n",
+							"                   .agg(\n",
+							"                         sum('fare_amount').alias('total_fare'),\n",
+							"                         avg('trip_distance').alias('average_distance')\n",
+							"                    )\n",
+							"\n",
+							"# Log dos dados agregados prontos para análise\n",
+							"print(f\"Dataframe transformado com {df_gold.count()} registros.\")"
+						],
+						"outputs": [],
+						"execution_count": 33
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"display(df_gold)"
+						],
+						"outputs": [],
+						"execution_count": 34
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df_gold.write.parquet(\n",
+							"    path='abfss://azuresynapse@samasterclouddev01.dfs.core.windows.net/nyc_taxi/gold/',\n",
+							"    mode='overwrite',\n",
+							"    partitionBy='paymentType'\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 36
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Database1')]",
+			"type": "Microsoft.Synapse/workspaces/databases",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"Ddls": [
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "Database1",
+							"EntityType": "DATABASE",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"Properties": {
+								"IsSyMSCDMDatabase": true
+							},
+							"Source": {
+								"Provider": "ADLS",
+								"Location": "abfss://azuresynapse@samasterclouddev01.dfs.core.windows.net/Database1",
+								"Properties": {
+									"FormatType": "csv",
+									"LinkedServiceName": "mastercloud-WorkspaceDefaultStorage"
+								}
+							}
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/novoapachepeplo')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 15
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 10,
+					"minNodeCount": 3
+				},
+				"nodeCount": 10,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "3.3",
+				"isComputeIsolationEnabled": false,
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "eastus"
+		}
+	]
+}

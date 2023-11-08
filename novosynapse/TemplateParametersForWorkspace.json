@@ -1,0 +1,36 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "novosynapse"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
+		"SAsamasterclouddev01_connectionString": {
+			"value": ""
+		},
+		"mastercloud-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:mastercloud.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"masterclouddev-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:masterclouddev.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"novosynapse-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:novosynapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"mastercloud-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://samasterclouddev01.dfs.core.windows.net"
+		},
+		"masterclouddev-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://samasterclouddev01.dfs.core.windows.net"
+		},
+		"novosynapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://novostoragepeplov.dfs.core.windows.net"
+		},
+		"sample-diabetes_sasUri": {
+			"value": ""
+		}
+	}
+}
