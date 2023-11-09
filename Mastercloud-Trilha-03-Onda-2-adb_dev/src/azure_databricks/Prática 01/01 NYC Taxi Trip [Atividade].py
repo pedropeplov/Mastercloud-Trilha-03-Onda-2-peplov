@@ -8,7 +8,11 @@
 
 # COMMAND ----------
 
-df = spark.read.csv("dbfs:/databricks-datasets/nyctaxi/tripdata/yellow/yellow_tripdata_2019-12.csv.gz", inferSchema=True, header=True)
+df = spark.read.csv("dbfs:/databricks-datasets/nyctaxi/tripdata/yellow/yellow_tripdata_2009-02.csv.gz", inferSchema=True, header=True)
+
+# COMMAND ----------
+
+display(df)
 
 # COMMAND ----------
 
@@ -20,8 +24,11 @@ df = spark.read.csv("dbfs:/databricks-datasets/nyctaxi/tripdata/yellow/yellow_tr
 df.createOrReplaceTempView("taxi_trips")
 
 query = """
-    SELECT *
+    SELECT count(Vendor_name), date_format (trip_dropoff_datetime, 'E') a
     FROM taxi_trips
+    WHERE payment_type == 'CASH'
+    group by a
+    order by count(vendor_name)
 """
 
 spark.sql(query).display()
